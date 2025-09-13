@@ -1,0 +1,104 @@
+{
+  "templateId": "40a3b3973adb0ee924f24a4df124904c68e7a4f27d2737e0638227022641470f",
+  "fileName": "pattern1.pdf",
+  "pages": 1,
+  "fields": [
+    {
+      "name": "msr_daily",
+      "strategy": "text",
+      "marker": "msr:",
+      "page": 0,
+      "markerBox": {
+        "x": 179.181,
+        "y": 565.5029999999999,
+        "w": 24,
+        "h": 10
+      },
+      "draw": {
+        "x": 209.181,
+        "y": 565.5029999999999,
+        "gap": 6,
+        "font": "Helvetica",
+        "size": 10
+      }
+    },
+    {
+      "name": "max_hourly",
+      "strategy": "text",
+      "marker": "mchr:",
+      "page": 0,
+      "markerBox": {
+        "x": 318.8135599999998,
+        "y": 565.5029999999999,
+        "w": 30,
+        "h": 10
+      },
+      "draw": {
+        "x": 354.8135599999998,
+        "y": 565.5029999999999,
+        "gap": 6,
+        "font": "Helvetica",
+        "size": 10
+      }
+    },
+    {
+      "name": "msr_secondly",
+      "strategy": "text",
+      "marker": "msr:",
+      "page": 0,
+      "markerBox": {
+        "x": 330.39196,
+        "y": 549.3603,
+        "w": 24,
+        "h": 10
+      },
+      "draw": {
+        "x": 360.39196,
+        "y": 549.3603,
+        "gap": 6,
+        "font": "Helvetica",
+        "size": 10
+      }
+    },
+    {
+      "name": "pump_model",
+      "strategy": "text",
+      "marker": "n:",
+      "page": 0,
+      "markerBox": {
+        "x": 212.24208,
+        "y": 388.546,
+        "w": 12,
+        "h": 10
+      },
+      "draw": {
+        "x": 230.24208,
+        "y": 388.546,
+        "gap": 6,
+        "font": "Helvetica",
+        "size": 10
+      }
+    },
+    {
+      "name": "project_code",
+      "strategy": "text",
+      "marker": "sh:",
+      "page": 0,
+      "markerBox": {
+        "x": 251.781,
+        "y": 45.226,
+        "w": 18,
+        "h": 10
+      },
+      "draw": {
+        "x": 275.781,
+        "y": 45.226,
+        "gap": 6,
+        "font": "Helvetica",
+        "size": 10
+      }
+    }
+  ],
+  "createdAt": "2025-09-13T21:21:19.473Z",
+  "version": 1
+}

@@ -8,6 +8,7 @@
 import express from 'express';
 import multer from 'multer';
 import { uploadTemplate, generatePDF, getManifest } from '../services/templateService.js';
+import { calculateWaterConsumption, validateCalculationData } from '../services/calculationsService.js';
 
 const router = express.Router();
 
@@ -32,6 +33,49 @@ const upload = multer({
   },
   limits: {
     fileSize: 10 * 1024 * 1024 // 10MB
+  }
+});
+
+/**
+ * POST /api/calculate
+ * Выполнение расчётов водопотребления
+ */
+router.post('/calculate', async (req, res) => {
+  try {
+    const { dailyConsumption, options = {} } = req.body;
+    
+    if (dailyConsumption === undefined || dailyConsumption === null) {
+      return res.status(400).json({
+        code: 'MISSING_DAILY_CONSUMPTION',
+        message: 'dailyConsumption обязателен'
+      });
+    }
+
+    // Валидируем данные
+    const validation = validateCalculationData({ dailyConsumption });
+    if (!validation.valid) {
+      return res.status(400).json({
+        code: 'VALIDATION_ERROR',
+        message: 'Ошибка валидации данных',
+        details: validation.errors
+      });
+    }
+
+    // Выполняем расчёты
+    const calculations = calculateWaterConsumption(dailyConsumption, options);
+    
+    res.json({
+      success: true,
+      calculations,
+      message: 'Расчёты выполнены успешно'
+    });
+  } catch (error) {
+    console.error('Ошибка расчётов:', error);
+    res.status(500).json({
+      code: 'CALCULATION_ERROR',
+      message: 'Ошибка выполнения расчётов',
+      details: error.message
+    });
   }
 });
 
@@ -118,7 +162,18 @@ router.post('/generate', async (req, res) => {
       });
     }
 
-    const pdfBuffer = await generatePDF(templateId, values, options);
+    // Подготавливаем данные для расчётов
+    const calculationData = {
+      dailyConsumption: values.dailyConsumption
+    };
+    
+    // Передаем исходные данные в options для заполнения PDF
+    const enrichedOptions = {
+      ...options,
+      originalValues: values
+    };
+    
+    const pdfBuffer = await generatePDF(templateId, calculationData, enrichedOptions);
     
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename="filled_template.pdf"');

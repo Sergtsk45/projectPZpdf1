@@ -6,8 +6,11 @@
  */
 
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.js';
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { FIELD_NAMES, MARKERS } from '../models/Manifest.js';
+import fs from 'fs/promises';
+import path from 'path';
+import fontkit from '@pdf-lib/fontkit';
 
 /**
  * Привязки маркеров к полям (для обработки дублей)
@@ -26,7 +29,9 @@ const MARKER_BINDINGS = {
  */
 export async function detectMarkers(pdfBuffer) {
   try {
-    const loadingTask = pdfjsLib.getDocument({ data: pdfBuffer });
+    // Конвертируем Buffer в Uint8Array если нужно
+    const data = pdfBuffer instanceof Buffer ? new Uint8Array(pdfBuffer) : pdfBuffer;
+    const loadingTask = pdfjsLib.getDocument({ data });
     const pdf = await loadingTask.promise;
     
     const markers = [];
@@ -117,8 +122,23 @@ export async function detectMarkers(pdfBuffer) {
 export async function fillPDFWithValues(templateBuffer, manifest, values, options = {}) {
   try {
     const pdfDoc = await PDFDocument.load(templateBuffer);
+    
+    // Регистрируем fontkit для поддержки кастомных шрифтов
+    pdfDoc.registerFontkit(fontkit);
+    
     const pages = pdfDoc.getPages();
-    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    
+    // Пытаемся загрузить кастомный шрифт для кириллицы
+    let font;
+    try {
+      const fontPath = path.join(process.cwd(), 'assets/fonts/DejaVuSans.ttf');
+      const fontBytes = await fs.readFile(fontPath);
+      font = await pdfDoc.embedFont(fontBytes);
+      console.log('✅ Загружен кастомный шрифт DejaVuSans');
+    } catch (error) {
+      console.warn('Не удалось загрузить кастомный шрифт, используем стандартный:', error.message);
+      font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    }
     
     const fontSize = options.fontSize || 10;
     const gap = options.gap || 6;

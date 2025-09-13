@@ -9,9 +9,10 @@ import fs from 'fs/promises';
 import crypto from 'crypto';
 import path from 'path';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.js';
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { createEmptyManifest, validateManifest, findField, FIELD_NAMES, MARKERS } from '../models/Manifest.js';
 import { detectMarkers, fillPDFWithValues } from '../utils/pdfProcessor.js';
+import { calculateWaterConsumption, validateCalculationData } from './calculationsService.js';
 
 const MANIFESTS_DIR = 'backend/storage/manifests';
 const TEMPLATES_DIR = 'backend/storage/templates';
@@ -39,7 +40,7 @@ export async function uploadTemplate(file) {
     }
     
     // Детектируем метки в PDF
-    const markers = await detectMarkers(fileBuffer);
+    const markers = await detectMarkers(new Uint8Array(fileBuffer));
     
     // Создаем манифест
     const manifest = createEmptyManifest(templateId, file.originalname, 1);
@@ -85,8 +86,32 @@ export async function getManifest(templateId) {
  * @param {Object} options 
  * @returns {Promise<Buffer>}
  */
-export async function generatePDF(templateId, values, options = {}) {
+export async function generatePDF(templateId, calculationData, options = {}) {
   try {
+    // Валидируем входные данные для расчётов
+    const validation = validateCalculationData(calculationData);
+    if (!validation.valid) {
+      throw new Error(`Ошибка валидации данных: ${validation.errors.join(', ')}`);
+    }
+
+    // Выполняем расчёты водопотребления
+    const calculations = calculateWaterConsumption(calculationData.dailyConsumption, options.calculationOptions);
+    
+    // Получаем исходные данные из options (переданные с фронтенда)
+    const originalValues = options.originalValues || {};
+    
+    // Объединяем исходные данные с результатами расчётов
+    const enrichedValues = {
+      ...originalValues,
+      // Добавляем рассчитанные значения
+      hourlyConsumption: calculations.hourlyConsumption,
+      secondlyConsumption: calculations.secondlyConsumption,
+      // Добавляем исходные данные для совместимости
+      msr_daily: calculationData.dailyConsumption,
+      max_hourly: calculations.hourlyConsumption,
+      msr_secondly: calculations.secondlyConsumption
+    };
+
     // Получаем манифест
     const manifest = await getManifest(templateId);
     if (!manifest) {
@@ -94,7 +119,7 @@ export async function generatePDF(templateId, values, options = {}) {
     }
     
     // Находим файл шаблона
-    const templatePath = path.join(TEMPLATES_DIR, `template_${templateId}.pdf`);
+    let templatePath = path.join(TEMPLATES_DIR, `template_${templateId}.pdf`);
     try {
       await fs.access(templatePath);
     } catch (error) {
@@ -110,8 +135,8 @@ export async function generatePDF(templateId, values, options = {}) {
     // Читаем шаблон
     const templateBuffer = await fs.readFile(templatePath);
     
-    // Заполняем PDF
-    const filledBuffer = await fillPDFWithValues(templateBuffer, manifest, values, options);
+    // Заполняем PDF с обогащенными данными
+    const filledBuffer = await fillPDFWithValues(templateBuffer, manifest, enrichedValues, options);
     
     return filledBuffer;
   } catch (error) {

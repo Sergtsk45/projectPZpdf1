@@ -1,0 +1,104 @@
+{
+  "templateId": "5fac67b72f7c82c9f32ee615b26d7834ccbe1ff4c16ebf600f3912d24beeb7a2",
+  "fileName": "pattern1.pdf",
+  "pages": 1,
+  "fields": [
+    {
+      "name": "msr_daily",
+      "strategy": "text",
+      "marker": "msr:",
+      "page": 0,
+      "markerBox": {
+        "x": 300.6224,
+        "y": 565.5033,
+        "w": 24,
+        "h": 10
+      },
+      "draw": {
+        "x": 330.6224,
+        "y": 565.5033,
+        "gap": 6,
+        "font": "Helvetica",
+        "size": 10
+      }
+    },
+    {
+      "name": "max_hourly",
+      "strategy": "text",
+      "marker": "mchr:",
+      "page": 0,
+      "markerBox": {
+        "x": 397.5194,
+        "y": 565.5033,
+        "w": 30,
+        "h": 10
+      },
+      "draw": {
+        "x": 433.5194,
+        "y": 565.5033,
+        "gap": 6,
+        "font": "Helvetica",
+        "size": 10
+      }
+    },
+    {
+      "name": "msr_secondly",
+      "strategy": "text",
+      "marker": "msr:",
+      "page": 0,
+      "markerBox": {
+        "x": 341.62596,
+        "y": 549.3603,
+        "w": 24,
+        "h": 10
+      },
+      "draw": {
+        "x": 371.62596,
+        "y": 549.3603,
+        "gap": 6,
+        "font": "Helvetica",
+        "size": 10
+      }
+    },
+    {
+      "name": "pump_model",
+      "strategy": "text",
+      "marker": "n:",
+      "page": 0,
+      "markerBox": {
+        "x": 212.24151999999995,
+        "y": 388.5459,
+        "w": 12,
+        "h": 10
+      },
+      "draw": {
+        "x": 230.24151999999995,
+        "y": 388.5459,
+        "gap": 6,
+        "font": "Helvetica",
+        "size": 10
+      }
+    },
+    {
+      "name": "project_code",
+      "strategy": "text",
+      "marker": "sh:",
+      "page": 0,
+      "markerBox": {
+        "x": 251.781,
+        "y": 45.226,
+        "w": 18,
+        "h": 10
+      },
+      "draw": {
+        "x": 275.781,
+        "y": 45.226,
+        "gap": 6,
+        "font": "Helvetica",
+        "size": 10
+      }
+    }
+  ],
+  "createdAt": "2025-09-13T11:26:27.733Z",
+  "version": 1
+}

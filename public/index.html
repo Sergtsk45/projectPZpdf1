@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Заполнение PDF шаблона</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Сервис заполнения PDF шаблона</h1>
+        <form id="dataForm">
+            <div class="form-group">
+                <label for="dailyConsumption">Максимальный суточный расход воды (м³/час):</label>
+                <input type="number" id="dailyConsumption" name="dailyConsumption" step="0.01" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="requiredHead">Требуемый напор воды (м):</label>
+                <input type="number" id="requiredHead" name="requiredHead" step="0.1" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="pumpModel">Установленный насос (марка):</label>
+                <input type="text" id="pumpModel" name="pumpModel" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="flowMeter">Расходомер-счётчик:</label>
+                <input type="text" id="flowMeter" name="flowMeter" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="projectCode">Шифр проекта:</label>
+                <input type="text" id="projectCode" name="projectCode" required>
+            </div>
+            
+            <div class="button-group">
+                <button type="button" id="calculateBtn">Рассчитать</button>
+                <button type="submit">Сгенерировать PDF</button>
+            </div>
+        </form>
+        
+        <div id="results" class="results" style="display: none;">
+            <h2>Результаты расчетов:</h2>
+            <p>Максимальный часовой расход: <span id="hourlyConsumption"></span> м³/час</p>
+            <p>Максимальный секундный расход: <span id="secondlyConsumption"></span> л/сек</p>
+        </div>
+        
+        <div id="status" class="status"></div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>

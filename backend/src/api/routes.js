@@ -19,9 +19,10 @@ const upload = multer({
       cb(null, 'backend/storage/templates/');
     },
     filename: (req, file, cb) => {
+      // Временно сохраняем с timestamp, потом переименуем в templateService
       const timestamp = Date.now();
       const ext = file.originalname.split('.').pop();
-      cb(null, `template_${timestamp}.${ext}`);
+      cb(null, `temp_${timestamp}.${ext}`);
     }
   }),
   fileFilter: (req, file, cb) => {

@@ -10,6 +10,7 @@
  * @typedef {Object} TemplateManifest
  * @property {string} templateId - SHA256 хеш файла шаблона
  * @property {string} fileName - Исходное имя файла
+ * @property {string} storageFileName - Имя файла в хранилище (template_<templateId>.pdf)
  * @property {number} pages - Количество страниц
  * @property {Field[]} fields - Массив полей для заполнения
  * @property {string} createdAt - ISO дата создания
@@ -79,6 +80,7 @@ export function createEmptyManifest(templateId, fileName, pages = 1) {
   return {
     templateId,
     fileName,
+    storageFileName: `template_${templateId}.pdf`,
     pages,
     fields: [],
     createdAt: new Date().toISOString(),

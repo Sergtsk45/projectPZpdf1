@@ -46,6 +46,13 @@ export async function uploadTemplate(file) {
     const manifest = createEmptyManifest(templateId, file.originalname, 1);
     manifest.fields = markers;
     
+    // Переименовываем файл в правильное имя
+    const correctFileName = manifest.storageFileName;
+    const correctFilePath = path.join(TEMPLATES_DIR, correctFileName);
+    
+    // Перемещаем файл из временного места в правильное имя
+    await fs.rename(file.path, correctFilePath);
+    
     // Сохраняем манифест
     await fs.mkdir(MANIFESTS_DIR, { recursive: true });
     await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2));
@@ -118,18 +125,49 @@ export async function generatePDF(templateId, calculationData, options = {}) {
       throw new Error(`Шаблон ${templateId} не найден`);
     }
     
-    // Находим файл шаблона
-    let templatePath = path.join(TEMPLATES_DIR, `template_${templateId}.pdf`);
+    // Используем имя файла из манифеста (с fallback для старых манифестов)
+    const storageFileName = manifest.storageFileName || `template_${templateId}.pdf`;
+    const templatePath = path.join(TEMPLATES_DIR, storageFileName);
+    console.log(`📄 Используем шаблон: ${templatePath}`);
+    
+    // Проверяем существование файла
     try {
       await fs.access(templatePath);
     } catch (error) {
-      // Ищем по оригинальному имени
+      // Fallback: ищем любой файл с templateId в имени
+      console.log(`📄 Fallback: ищем файл с templateId ${templateId}`);
       const files = await fs.readdir(TEMPLATES_DIR);
-      const templateFile = files.find(f => f.startsWith('template_') && f.endsWith('.pdf'));
+      console.log(`📄 Доступные файлы:`, files);
+      
+      const templateFile = files.find(f => f.includes(templateId) && f.endsWith('.pdf'));
       if (!templateFile) {
-        throw new Error(`Файл шаблона для ${templateId} не найден`);
+        // Если не нашли по templateId, берем первый PDF файл
+        const anyPdfFile = files.find(f => f.endsWith('.pdf'));
+        if (!anyPdfFile) {
+          throw new Error(`Файл шаблона для ${templateId} не найден. Искали: ${storageFileName}. Доступные файлы: ${files.join(', ')}`);
+        }
+        console.log(`📄 Fallback: используем любой PDF файл ${anyPdfFile}`);
+        const fallbackPath = path.join(TEMPLATES_DIR, anyPdfFile);
+        
+        // Читаем шаблон из fallback пути
+        const templateBuffer = await fs.readFile(fallbackPath);
+        
+        // Заполняем PDF с обогащенными данными
+        const filledBuffer = await fillPDFWithValues(templateBuffer, manifest, enrichedValues, options);
+        
+        return filledBuffer;
       }
-      templatePath = path.join(TEMPLATES_DIR, templateFile);
+      
+      const fallbackPath = path.join(TEMPLATES_DIR, templateFile);
+      console.log(`📄 Fallback: используем ${fallbackPath}`);
+      
+      // Читаем шаблон из fallback пути
+      const templateBuffer = await fs.readFile(fallbackPath);
+      
+      // Заполняем PDF с обогащенными данными
+      const filledBuffer = await fillPDFWithValues(templateBuffer, manifest, enrichedValues, options);
+      
+      return filledBuffer;
     }
     
     // Читаем шаблон

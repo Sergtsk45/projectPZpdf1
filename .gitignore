@@ -1,3 +1,6 @@
 node_modules/
+.env
 *.pdf
-.qoder/
+test-*.pdf
+.DS_Store
+*.log

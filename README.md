@@ -32,12 +32,30 @@ A web service that accepts user input through a web form, performs calculations,
 
 ## Usage
 
-1. Start the development server:
+1. Configure environment (optional):
+   ```bash
+   cp .env.example .env
+   # edit PORT if needed (default 3000)
+   ```
+
+2. Start the development server:
    ```bash
    npm run dev
    ```
 
-2. Open your browser and navigate to `http://localhost:3000`
+3. Open your browser and navigate to `http://localhost:${PORT:-3000}`
+
+### Cyrillic Support
+
+The service now includes full support for Cyrillic characters in PDF generation. The DejaVuSans.ttf font is automatically loaded from `assets/fonts/` to handle Russian text.
+
+To use a different font:
+```bash
+# Replace the font file
+cp /path/to/your-font.ttf assets/fonts/DejaVuSans.ttf
+# Or set FONT_PATH in .env
+echo "FONT_PATH=/path/to/your-font.ttf" >> .env
+```
 
 3. Fill in the form with the required data:
    - Maximum daily water consumption (м³/час)

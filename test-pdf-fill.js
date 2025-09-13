@@ -1,19 +1,17 @@
 const fs = require('fs');
-const path = require('path');
 
 // Test data
 const testData = {
-  dailyConsumption: "100.5",
-  requiredHead: "25.0",
-  pumpModel: "Model XYZ",
-  flowMeter: "Meter ABC",
-  projectCode: "PROJ-123"
+  dailyConsumption: "150.5",
+  requiredHead: "30.0",
+  pumpModel: "Насос ABC-123",
+  flowMeter: "Расходомер XYZ",
+  projectCode: "PROJ-456"
 };
 
-// Simple test function
-async function testPdfGeneration() {
+async function testPdfFill() {
   try {
-    console.log('Testing PDF generation with data:', testData);
+    console.log('Testing PDF fill with data:', testData);
     
     const port = process.env.PORT || 3000;
     const response = await fetch(`http://localhost:${port}/generate-pdf`, {
@@ -27,8 +25,8 @@ async function testPdfGeneration() {
     if (response.ok) {
       console.log('PDF generation successful!');
       const buffer = await response.arrayBuffer();
-      fs.writeFileSync(path.join(__dirname, 'test-output.pdf'), Buffer.from(buffer));
-      console.log('Test PDF saved as test-output.pdf');
+      fs.writeFileSync('test-filled-output.pdf', Buffer.from(buffer));
+      console.log('Filled PDF saved as test-filled-output.pdf');
     } else {
       console.error('PDF generation failed with status:', response.status);
     }
@@ -38,4 +36,4 @@ async function testPdfGeneration() {
 }
 
 // Run the test
-testPdfGeneration();
+testPdfFill();

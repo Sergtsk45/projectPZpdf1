@@ -75,7 +75,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 showStatus('PDF успешно сгенерирован и загружен!', 'success');
             } else {
-                throw new Error('Ошибка генерации PDF');
+                // Try to get error message from server
+                let errorMessage = 'Ошибка генерации PDF';
+                try {
+                    const errorData = await response.json();
+                    if (errorData.message) {
+                        errorMessage = errorData.message;
+                    }
+                } catch (e) {
+                    // If response is not JSON, use default message
+                }
+                throw new Error(errorMessage);
             }
         } catch (error) {
             console.error('Error:', error);

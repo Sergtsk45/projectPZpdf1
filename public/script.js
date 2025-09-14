@@ -87,34 +87,41 @@ document.addEventListener('DOMContentLoaded', function() {
         // Hide previous results
         resultsDiv.style.display = 'none';
         
-        // Get form data and prepare values for new API
+        // Get form data and prepare values for API
         const formData = new FormData(form);
         const data = Object.fromEntries(formData.entries());
-        
-        // Prepare data for calculations (dailyConsumption must be in root for calculations)
+
+        const daily = parseFloat(data.dailyConsumption);
+        if (isNaN(daily)) {
+            showStatus('Пожалуйста, введите корректное значение максимального суточного расхода воды', 'error');
+            return;
+        }
+        // Compute values to show in UI if not calculated earlier
+        const hourly = 3.9 * daily / 24;
+        const secondly = hourly / 3.6;
+        document.getElementById('hourlyConsumption').textContent = hourly.toFixed(2);
+        document.getElementById('secondlyConsumption').textContent = secondly.toFixed(2);
+        resultsDiv.style.display = 'block';
+
         const requestData = {
             templateId: currentTemplateId,
             values: {
-                dailyConsumption: parseFloat(data.dailyConsumption), // For calculations
-                pumpModel: data.pumpModel,
-                projectCode: data.projectCode,
-                requiredHead: parseFloat(data.requiredHead),
-                flowMeter: data.flowMeter,
-                // Additional fields for PDF filling
-                msr_daily: data.dailyConsumption + ' м3/час',
+                // For server-side calculations and PDF filling
+                dailyConsumption: daily,
                 pump_model: data.pumpModel,
                 project_code: data.projectCode,
-                max_hourly: data.hourlyConsumption || '0 м3/час',
-                msr_secondly: data.secondlyConsumption || '0 л/с'
+                requiredHead: parseFloat(data.requiredHead),
+                flow_meter: data.flowMeter
             },
             options: {
                 fontSize: 10,
-                gap: 6
+                gap: 6,
+                calculationOptions: { precision: 2 }
             }
         };
         
         try {
-            showStatus('Генерация PDF...', 'success');
+            showStatus('Генерация PDF...', 'info');
             
             // Send data to new API
             const response = await fetch('/api/generate', {

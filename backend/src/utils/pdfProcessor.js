@@ -169,9 +169,9 @@ export async function fillPDFWithValues(templateBuffer, manifest, values, option
         // Заполняем поле AcroForm (если есть)
         const form = pdfDoc.getForm();
         try {
-          const field = form.getField(field.acroformName);
-          if (field) {
-            field.setText(stringValue);
+          const formField = form.getField(field.acroformName);
+          if (formField) {
+            formField.setText(stringValue);
           }
         } catch (error) {
           console.warn(`Поле AcroForm ${field.acroformName} не найдено:`, error.message);

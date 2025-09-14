@@ -12,7 +12,7 @@ import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { createEmptyManifest, validateManifest, findField, FIELD_NAMES, MARKERS } from '../models/Manifest.js';
 import { detectMarkers, fillPDFWithValues } from '../utils/pdfProcessor.js';
-import { calculateWaterConsumption, validateCalculationData } from './calculationsService.js';
+import { calculateWaterConsumption, validateCalculationData, formatNumber } from './calculationsService.js';
 
 const MANIFESTS_DIR = 'backend/storage/manifests';
 const TEMPLATES_DIR = 'backend/storage/templates';
@@ -107,16 +107,22 @@ export async function generatePDF(templateId, calculationData, options = {}) {
     // Получаем исходные данные из options (переданные с фронтенда)
     const originalValues = options.originalValues || {};
     
+    // Готовим форматированные значения с единицами измерения
+    const precision = (options.calculationOptions && options.calculationOptions.precision) || 2;
+    const msrDailyStr = `${formatNumber(calculationData.dailyConsumption, precision)} м³/сут`;
+    const maxHourlyStr = `${formatNumber(calculations.hourlyConsumption, precision)} м³/час`;
+    const msrSecondlyStr = `${formatNumber(calculations.secondlyConsumption, precision)} л/с`;
+
     // Объединяем исходные данные с результатами расчётов
     const enrichedValues = {
       ...originalValues,
-      // Добавляем рассчитанные значения
+      // Числовые значения (могут пригодиться)
       hourlyConsumption: calculations.hourlyConsumption,
       secondlyConsumption: calculations.secondlyConsumption,
-      // Добавляем исходные данные для совместимости
-      msr_daily: calculationData.dailyConsumption,
-      max_hourly: calculations.hourlyConsumption,
-      msr_secondly: calculations.secondlyConsumption
+      // Строковые значения для вывода в PDF
+      msr_daily: msrDailyStr,
+      max_hourly: maxHourlyStr,
+      msr_secondly: msrSecondlyStr
     };
 
     // Получаем манифест

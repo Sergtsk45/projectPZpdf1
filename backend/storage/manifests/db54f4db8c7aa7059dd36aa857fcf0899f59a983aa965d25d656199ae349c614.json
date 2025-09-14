@@ -1,0 +1,48 @@
+{
+  "templateId": "db54f4db8c7aa7059dd36aa857fcf0899f59a983aa965d25d656199ae349c614",
+  "fileName": "test_with_custom_markers.pdf",
+  "storageFileName": "template_db54f4db8c7aa7059dd36aa857fcf0899f59a983aa965d25d656199ae349c614.pdf",
+  "pages": 1,
+  "fields": [
+    {
+      "name": "xxx",
+      "strategy": "text",
+      "marker": "{{xxx}}",
+      "page": 0,
+      "markerBox": {
+        "x": 272,
+        "y": 300,
+        "w": 42,
+        "h": 10
+      },
+      "draw": {
+        "x": 320,
+        "y": 300,
+        "gap": 6,
+        "font": "Helvetica",
+        "size": 10
+      }
+    },
+    {
+      "name": "pump",
+      "strategy": "text",
+      "marker": "{{pump}}",
+      "page": 0,
+      "markerBox": {
+        "x": 188,
+        "y": 250,
+        "w": 48,
+        "h": 10
+      },
+      "draw": {
+        "x": 242,
+        "y": 250,
+        "gap": 6,
+        "font": "Helvetica",
+        "size": 10
+      }
+    }
+  ],
+  "createdAt": "2025-09-14T06:29:24.515Z",
+  "version": 1
+}

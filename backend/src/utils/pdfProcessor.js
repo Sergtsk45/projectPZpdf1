@@ -86,18 +86,25 @@ export async function detectMarkers(pdfBuffer) {
             continue;
           }
 
-          // Используем координаты первого элемента строки
+          // Вычисляем позицию метки внутри строки
           const firstItem = line.items[0];
-          const transform = firstItem.transform;
-          const x = transform[4];
-          const y = transform[5];
+          const baseTransform = firstItem.transform;
+          const baseX = baseTransform[4];
+          const baseY = baseTransform[5];
+          
+          // Вычисляем X координату КОНЦА метки внутри строки
+          const markerStart = match.index;
+          const markerEnd = markerStart + match[0].length;
+          const charWidth = 6; // Примерная ширина символа
+          const markerX = baseX + (markerEnd * charWidth); // Позиция ПОСЛЕ метки
+          const markerWidth = match[0].length * charWidth;
 
           markers.push({
             pageIndex: pageIndex - 1,
             text: match[0], // исходный текст маркера, например {{name}}
-            x,
-            y,
-            transform,
+            x: markerX,
+            y: baseY,
+            transform: baseTransform,
             __customName: fieldName
           });
           seenFieldNames.add(fieldName);

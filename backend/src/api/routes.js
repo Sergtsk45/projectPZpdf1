@@ -147,7 +147,7 @@ router.get('/templates/:id/manifest', async (req, res) => {
  */
 router.post('/generate', async (req, res) => {
   try {
-    const { templateId, values, options = {} } = req.body;
+    const { templateId, values, fieldMappings = {}, options = {} } = req.body;
     
     if (!templateId) {
       return res.status(400).json({
@@ -168,10 +168,11 @@ router.post('/generate', async (req, res) => {
       dailyConsumption: values.dailyConsumption
     };
     
-    // Передаем исходные данные в options для заполнения PDF
+    // Передаем исходные данные и маппинг полей в options для заполнения PDF
     const enrichedOptions = {
       ...options,
-      originalValues: values
+      originalValues: values,
+      fieldMappings: fieldMappings
     };
     
     const pdfBuffer = await generatePDF(templateId, calculationData, enrichedOptions);

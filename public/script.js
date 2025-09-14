@@ -103,6 +103,27 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('secondlyConsumption').textContent = secondly.toFixed(2);
         resultsDiv.style.display = 'block';
 
+        // Собираем маппинг полей к меткам из формы
+        const fieldMappings = {
+            dailyConsumption: data.dailyConsumptionMarker || 'msr_daily',
+            requiredHead: data.requiredHeadMarker || 'mchr',
+            pumpModel: data.pumpModelMarker || 'n',
+            flowMeter: data.flowMeterMarker || 'flow_meter',
+            projectCode: data.projectCodeMarker || 'sh'
+        };
+
+        // Собираем маппинг полей к меткам из блока результатов
+        const resultsMappings = {
+            hourlyConsumption: document.getElementById('hourlyConsumptionMarker').value || 'mchr',
+            secondlyConsumption: document.getElementById('secondlyConsumptionMarker').value || 'msr_secondly'
+        };
+
+        // Объединяем маппинги
+        const allFieldMappings = {
+            ...fieldMappings,
+            ...resultsMappings
+        };
+
         const requestData = {
             templateId: currentTemplateId,
             values: {
@@ -113,6 +134,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 requiredHead: parseFloat(data.requiredHead),
                 flow_meter: data.flowMeter
             },
+            fieldMappings: allFieldMappings,
             options: {
                 fontSize: 10,
                 gap: 6,

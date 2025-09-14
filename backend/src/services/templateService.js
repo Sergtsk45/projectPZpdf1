@@ -104,14 +104,38 @@ export async function generatePDF(templateId, calculationData, options = {}) {
     // Выполняем расчёты водопотребления
     const calculations = calculateWaterConsumption(calculationData.dailyConsumption, options.calculationOptions);
     
-    // Получаем исходные данные из options (переданные с фронтенда)
+    // Получаем исходные данные и маппинг полей из options (переданные с фронтенда)
     const originalValues = options.originalValues || {};
+    const fieldMappings = options.fieldMappings || {};
     
-    // Готовим форматированные значения с единицами измерения
+    // Готовим значения для подстановки
     const precision = (options.calculationOptions && options.calculationOptions.precision) || 2;
-    const msrDailyStr = `${formatNumber(calculationData.dailyConsumption, precision)} м³/сут`;
-    const maxHourlyStr = `${formatNumber(calculations.hourlyConsumption, precision)} м³/час`;
-    const msrSecondlyStr = `${formatNumber(calculations.secondlyConsumption, precision)} л/с`;
+    
+    // Для вычисленных данных - только цифры без единиц измерения
+    const hourlyValue = formatNumber(calculations.hourlyConsumption, precision);
+    const secondlyValue = formatNumber(calculations.secondlyConsumption, precision);
+    const dailyValue = formatNumber(calculationData.dailyConsumption, precision);
+
+    // Создаем маппинг значений к именам полей на основе fieldMappings
+    const mappedValues = {};
+    
+    // Маппинг для исходных данных - берем только то, что ввел пользователь
+    mappedValues[fieldMappings.dailyConsumption || 'msr_daily'] = dailyValue;
+    mappedValues[fieldMappings.pumpModel || 'n'] = originalValues.pump_model || '';
+    mappedValues[fieldMappings.flowMeter || 'flow_meter'] = originalValues.flow_meter || '';
+    mappedValues[fieldMappings.projectCode || 'sh'] = originalValues.project_code || '';
+    mappedValues[fieldMappings.requiredHead || 'mchr'] = originalValues.requiredHead || '';
+    
+    // Маппинг для результатов расчётов - только цифры
+    mappedValues[fieldMappings.hourlyConsumption || 'mchr'] = hourlyValue;
+    mappedValues[fieldMappings.secondlyConsumption || 'msr_secondly'] = secondlyValue;
+    
+    // Добавляем второе значение для msr (секундный расход) если используется стандартный маппинг
+    if (!fieldMappings.secondlyConsumption) {
+      const msrSecondlyMarker = fieldMappings.dailyConsumption ? 
+        fieldMappings.dailyConsumption + '_secondly' : 'msr_secondly';
+      mappedValues[msrSecondlyMarker] = secondlyValue;
+    }
 
     // Объединяем исходные данные с результатами расчётов
     const enrichedValues = {
@@ -119,10 +143,12 @@ export async function generatePDF(templateId, calculationData, options = {}) {
       // Числовые значения (могут пригодиться)
       hourlyConsumption: calculations.hourlyConsumption,
       secondlyConsumption: calculations.secondlyConsumption,
-      // Строковые значения для вывода в PDF
-      msr_daily: msrDailyStr,
-      max_hourly: maxHourlyStr,
-      msr_secondly: msrSecondlyStr
+      // Строковые значения для вывода в PDF (стандартные имена) - только цифры
+      msr_daily: dailyValue,
+      max_hourly: hourlyValue,
+      msr_secondly: secondlyValue,
+      // Пользовательские маппинги
+      ...mappedValues
     };
 
     // Получаем манифест

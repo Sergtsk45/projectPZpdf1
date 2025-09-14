@@ -20,7 +20,9 @@ A web service that accepts user input through a web form, performs calculations,
 ### Backend
 - Node.js
 - Express.js
-- PDF-lib for PDF processing
+- pdf-lib for PDF processing
+- pdfjs-dist for marker detection
+- Multer for template uploads
 
 ## Installation
 
@@ -70,29 +72,46 @@ echo "FONT_PATH=/path/to/your-font.ttf" >> .env
 
 ## API Endpoints
 
-### POST /generate-pdf
-Generates a PDF document with the provided data
+### POST /api/templates
+Uploads a PDF template, auto-detects markers, and returns a manifest
 
-**Request Body:**
+Response: `{ templateId: string, manifest: TemplateManifest }`
+
+### GET /api/templates/:id/manifest
+Returns a previously generated manifest for the template
+
+### POST /api/generate
+Generates a filled PDF using the template, request values, and auto-calculated fields
+
+Example request body:
 ```json
 {
-  "dailyConsumption": "100.5",
-  "requiredHead": "25.0",
-  "pumpModel": "Model XYZ",
-  "flowMeter": "Meter ABC",
-  "projectCode": "PROJ-123"
+  "templateId": "<sha256>",
+  "values": {
+    "dailyConsumption": 100.5,
+    "pump_model": "Model XYZ",
+    "project_code": "PROJ-123"
+  },
+  "options": {
+    "fontSize": 10,
+    "gap": 6,
+    "calculationOptions": { "precision": 2 }
+  }
 }
 ```
 
-**Response:**
-A PDF file with the completed form
+Response: PDF file
 
 ## Calculations
 
 The service performs the following automatic calculations:
 
-1. Maximum hourly consumption: `3.9 * dailyConsumption / 24`
-2. Maximum secondly consumption: `hourlyConsumption / 3.6`
+1. Maximum hourly consumption (m³/hour): `3.9 * dailyConsumption / 24`
+2. Maximum secondly consumption (l/s): `hourlyConsumption / 3.6`
+
+Notes:
+- Input `dailyConsumption` is in m³/day.
+- Server formats values with units in the generated PDF: m³/сут, m³/час, л/с.
 
 ## Project Structure
 
@@ -102,8 +121,15 @@ The service performs the following automatic calculations:
 │   ├── index.html
 │   ├── styles.css
 │   └── script.js
-├── pattern1.pdf (template)
-├── server.js
+├── backend/
+│   ├── app.js
+│   └── src/
+│       ├── api/routes.js
+│       ├── services/
+│       ├── utils/
+│       └── models/
+├── assets/fonts/DejaVuSans.ttf
+├── pattern1.pdf (example template)
 ├── package.json
 └── README.md
 ```
@@ -119,6 +145,16 @@ To run the production server:
 ```bash
 npm start
 ```
+
+### Template Storage Migration
+
+If you used earlier versions and see many timestamp-named files in `backend/storage/templates/`, run:
+```bash
+npm run migrate:templates
+```
+This will:
+- Rename files to `template_<templateId>.pdf`
+- Add `storageFileName` to manifests
 
 ## License
 

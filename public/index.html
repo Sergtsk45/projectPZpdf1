@@ -9,9 +9,24 @@
 <body>
     <div class="container">
         <h1>Сервис заполнения PDF шаблона</h1>
-        <form id="dataForm">
+        
+        <!-- Загрузка шаблона -->
+        <div class="template-section">
+            <h2>1. Загрузка PDF шаблона</h2>
             <div class="form-group">
-                <label for="dailyConsumption">Максимальный суточный расход воды (м³/час):</label>
+                <label for="templateFile">Выберите PDF шаблон:</label>
+                <input type="file" id="templateFile" name="templateFile" accept=".pdf" required>
+                <button type="button" id="uploadTemplateBtn">Загрузить шаблон</button>
+            </div>
+            <div id="templateStatus" class="status"></div>
+        </div>
+        
+        <!-- Заполнение данных -->
+        <div class="data-section" id="dataSection" style="display: none;">
+            <h2>2. Заполнение данных</h2>
+            <form id="dataForm">
+            <div class="form-group">
+                <label for="dailyConsumption">Максимальный суточный расход воды (м³/сут):</label>
                 <input type="number" id="dailyConsumption" name="dailyConsumption" step="0.01" required>
             </div>
             
@@ -35,11 +50,12 @@
                 <input type="text" id="projectCode" name="projectCode" required>
             </div>
             
-            <div class="button-group">
-                <button type="button" id="calculateBtn">Рассчитать</button>
-                <button type="submit">Сгенерировать PDF</button>
-            </div>
-        </form>
+                <div class="button-group">
+                    <button type="button" id="calculateBtn">Рассчитать</button>
+                    <button type="submit">Сгенерировать PDF</button>
+                </div>
+            </form>
+        </div>
         
         <div id="results" class="results" style="display: none;">
             <h2>Результаты расчетов:</h2>

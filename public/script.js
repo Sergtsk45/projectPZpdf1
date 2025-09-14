@@ -3,6 +3,49 @@ document.addEventListener('DOMContentLoaded', function() {
     const calculateBtn = document.getElementById('calculateBtn');
     const resultsDiv = document.getElementById('results');
     const statusDiv = document.getElementById('status');
+    const templateFile = document.getElementById('templateFile');
+    const uploadTemplateBtn = document.getElementById('uploadTemplateBtn');
+    const templateStatus = document.getElementById('templateStatus');
+    const dataSection = document.getElementById('dataSection');
+    
+    let currentTemplateId = null;
+    
+    // Загрузка шаблона
+    uploadTemplateBtn.addEventListener('click', async function() {
+        if (!templateFile.files[0]) {
+            showTemplateStatus('Пожалуйста, выберите PDF файл', 'error');
+            return;
+        }
+        
+        try {
+            showTemplateStatus('Загрузка шаблона...', 'info');
+            
+            const formData = new FormData();
+            formData.append('file', templateFile.files[0]);
+            
+            const response = await fetch('/api/templates', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                currentTemplateId = result.templateId;
+                
+                showTemplateStatus(`✅ Шаблон загружен! Найдено ${result.manifest.fields.length} полей`, 'success');
+                dataSection.style.display = 'block';
+                
+                // Показываем информацию о найденных полях
+                console.log('Найденные поля:', result.manifest.fields);
+            } else {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Ошибка загрузки шаблона');
+            }
+        } catch (error) {
+            console.error('Ошибка загрузки шаблона:', error);
+            showTemplateStatus('Ошибка загрузки шаблона: ' + error.message, 'error');
+        }
+    });
     
     // Function to perform calculations
     function calculateValues(dailyConsumption) {
@@ -36,23 +79,57 @@ document.addEventListener('DOMContentLoaded', function() {
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
         
+        if (!currentTemplateId) {
+            showStatus('Сначала загрузите PDF шаблон', 'error');
+            return;
+        }
+        
         // Hide previous results
         resultsDiv.style.display = 'none';
         
-        // Get form data
+        // Get form data and prepare values for API
         const formData = new FormData(form);
         const data = Object.fromEntries(formData.entries());
+
+        const daily = parseFloat(data.dailyConsumption);
+        if (isNaN(daily)) {
+            showStatus('Пожалуйста, введите корректное значение максимального суточного расхода воды', 'error');
+            return;
+        }
+        // Compute values to show in UI if not calculated earlier
+        const hourly = 3.9 * daily / 24;
+        const secondly = hourly / 3.6;
+        document.getElementById('hourlyConsumption').textContent = hourly.toFixed(2);
+        document.getElementById('secondlyConsumption').textContent = secondly.toFixed(2);
+        resultsDiv.style.display = 'block';
+
+        const requestData = {
+            templateId: currentTemplateId,
+            values: {
+                // For server-side calculations and PDF filling
+                dailyConsumption: daily,
+                pump_model: data.pumpModel,
+                project_code: data.projectCode,
+                requiredHead: parseFloat(data.requiredHead),
+                flow_meter: data.flowMeter
+            },
+            options: {
+                fontSize: 10,
+                gap: 6,
+                calculationOptions: { precision: 2 }
+            }
+        };
         
         try {
-            showStatus('Генерация PDF...', 'success');
+            showStatus('Генерация PDF...', 'info');
             
-            // Send data to server
-            const response = await fetch('/generate-pdf', {
+            // Send data to new API
+            const response = await fetch('/api/generate', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(data)
+                body: JSON.stringify(requestData)
             });
             
             if (response.ok) {
@@ -102,6 +179,18 @@ document.addEventListener('DOMContentLoaded', function() {
         // Hide status after 5 seconds
         setTimeout(() => {
             statusDiv.style.display = 'none';
+        }, 5000);
+    }
+    
+    // Function to show template status messages
+    function showTemplateStatus(message, type) {
+        templateStatus.textContent = message;
+        templateStatus.className = 'status ' + type;
+        templateStatus.style.display = 'block';
+        
+        // Hide status after 5 seconds
+        setTimeout(() => {
+            templateStatus.style.display = 'none';
         }, 5000);
     }
 });

@@ -128,15 +128,27 @@ export async function fillPDFWithValues(templateBuffer, manifest, values, option
     
     const pages = pdfDoc.getPages();
     
-    // Пытаемся загрузить кастомный шрифт для кириллицы
+    // Пытаемся загрузить кастомный шрифт для кириллицы (приоритет FONT_PATH)
     let font;
-    try {
-      const fontPath = path.join(process.cwd(), 'assets/fonts/DejaVuSans.ttf');
-      const fontBytes = await fs.readFile(fontPath);
-      font = await pdfDoc.embedFont(fontBytes);
-      console.log('✅ Загружен кастомный шрифт DejaVuSans');
-    } catch (error) {
-      console.warn('Не удалось загрузить кастомный шрифт, используем стандартный:', error.message);
+    const envPath = process.env.FONT_PATH;
+    const defaultPath = path.join(process.cwd(), 'assets/fonts/DejaVuSans.ttf');
+    const tryPaths = [envPath, defaultPath].filter(Boolean);
+    let loaded = false;
+    for (const p of tryPaths) {
+      try {
+        const isAbsolute = path.isAbsolute(p);
+        const resolved = isAbsolute ? p : path.join(process.cwd(), p);
+        const fontBytes = await fs.readFile(resolved);
+        font = await pdfDoc.embedFont(fontBytes);
+        console.log(`✅ Загружен кастомный шрифт: ${resolved}`);
+        loaded = true;
+        break;
+      } catch (e) {
+        // пробуем следующий
+      }
+    }
+    if (!loaded) {
+      console.warn('Не удалось загрузить кастомный шрифт, используем стандартный Helvetica');
       font = await pdfDoc.embedFont(StandardFonts.Helvetica);
     }
     

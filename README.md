@@ -146,6 +146,16 @@ To run the production server:
 npm start
 ```
 
+### Template Storage Migration
+
+If you used earlier versions and see many timestamp-named files in `backend/storage/templates/`, run:
+```bash
+npm run migrate:templates
+```
+This will:
+- Rename files to `template_<templateId>.pdf`
+- Add `storageFileName` to manifests
+
 ## License
 
 MIT

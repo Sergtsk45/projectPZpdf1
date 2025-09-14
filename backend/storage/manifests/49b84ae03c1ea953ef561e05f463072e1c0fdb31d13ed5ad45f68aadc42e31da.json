@@ -1,0 +1,29 @@
+{
+  "templateId": "49b84ae03c1ea953ef561e05f463072e1c0fdb31d13ed5ad45f68aadc42e31da",
+  "fileName": "test_template.pdf",
+  "storageFileName": "template_49b84ae03c1ea953ef561e05f463072e1c0fdb31d13ed5ad45f68aadc42e31da.pdf",
+  "pages": 1,
+  "fields": [
+    {
+      "name": "xxx",
+      "strategy": "text",
+      "marker": "{{xxx}}",
+      "page": 0,
+      "markerBox": {
+        "x": 50,
+        "y": 250,
+        "w": 42,
+        "h": 10
+      },
+      "draw": {
+        "x": 98,
+        "y": 250,
+        "gap": 6,
+        "font": "Helvetica",
+        "size": 10
+      }
+    }
+  ],
+  "createdAt": "2025-09-14T05:59:09.652Z",
+  "version": 1
+}

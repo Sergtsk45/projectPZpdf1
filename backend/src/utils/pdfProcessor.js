@@ -36,28 +36,72 @@ export async function detectMarkers(pdfBuffer) {
     
     const markers = [];
     const markerTexts = Object.keys(MARKER_BINDINGS);
+    const customBraceRegex = /\{\{\s*([a-zA-Z0-9._\u0400-\u04FF\u0500-\u052F\u2DE0-\u2DFF\uA640-\uA69F\s-]{1,64})\s*\}\}/g;
+    const seenFieldNames = new Set();
     
     // Сканируем все страницы
     for (let pageIndex = 1; pageIndex <= pdf.numPages; pageIndex++) {
       const page = await pdf.getPage(pageIndex);
       const textContent = await page.getTextContent();
       
+      // Собираем текст по строкам, чтобы корректно обрабатывать маркеры, разбитые на фрагменты
+      const lineTexts = new Map(); // y -> {text, items}
       for (const item of textContent.items) {
         const text = (item.str || '').trim();
-        if (!markerTexts.includes(text)) continue;
-        
-        // Получаем координаты метки
-        const transform = item.transform;
-        const x = transform[4];
-        const y = transform[5];
-        
-        markers.push({
-          pageIndex: pageIndex - 1, // 0-based
-          text,
-          x,
-          y,
-          transform
-        });
+        if (!text) continue;
+        const y = Math.round(item.transform[5]);
+        if (!lineTexts.has(y)) {
+          lineTexts.set(y, { text: '', items: [] });
+        }
+        const line = lineTexts.get(y);
+        line.text += text;
+        line.items.push(item);
+      }
+
+      for (const [y, line] of lineTexts) {
+        const text = line.text.trim();
+
+        // 1) Стандартные маркеры (msr:, n:, sh:, mchr:)
+        if (markerTexts.includes(text)) {
+          const firstItem = line.items[0];
+          const transform = firstItem.transform;
+          const x = transform[4];
+          const y = transform[5];
+
+          markers.push({
+            pageIndex: pageIndex - 1,
+            text,
+            x,
+            y,
+            transform
+          });
+          continue;
+        }
+
+        // 2) Пользовательские метки вида {{name}} (поддержка Unicode и пробелов)
+        let match;
+        while ((match = customBraceRegex.exec(text)) !== null) {
+          const fieldName = match[1].trim();
+          if (seenFieldNames.has(fieldName)) {
+            continue;
+          }
+
+          // Используем координаты первого элемента строки
+          const firstItem = line.items[0];
+          const transform = firstItem.transform;
+          const x = transform[4];
+          const y = transform[5];
+
+          markers.push({
+            pageIndex: pageIndex - 1,
+            text: match[0], // исходный текст маркера, например {{name}}
+            x,
+            y,
+            transform,
+            __customName: fieldName
+          });
+          seenFieldNames.add(fieldName);
+        }
       }
     }
     
@@ -73,12 +117,37 @@ export async function detectMarkers(pdfBuffer) {
     const fields = [];
     
     for (const marker of markers) {
+      // Кастомные {{name}}: создаём поле с именем name напрямую
+      if (marker.__customName) {
+        const name = marker.__customName;
+
+        fields.push({
+          name,
+          strategy: 'text',
+          marker: marker.text,
+          page: marker.pageIndex,
+          markerBox: {
+            x: marker.x,
+            y: marker.y,
+            w: marker.text.length * 6,
+            h: 10
+          },
+          draw: {
+            x: marker.x + (marker.text.length * 6) + 6,
+            y: marker.y,
+            gap: 6,
+            font: 'Helvetica',
+            size: 10
+          }
+        });
+        continue;
+      }
+
+      // Стандартные маркеры по биндингам
       const binding = MARKER_BINDINGS[marker.text];
       if (!binding) continue;
-      
       const counter = fieldCounters[marker.text] || 0;
       const fieldName = binding[counter];
-      
       if (fieldName) {
         fields.push({
           name: fieldName,
@@ -88,18 +157,17 @@ export async function detectMarkers(pdfBuffer) {
           markerBox: {
             x: marker.x,
             y: marker.y,
-            w: marker.text.length * 6, // Примерная ширина
+            w: marker.text.length * 6,
             h: 10
           },
           draw: {
-            x: marker.x + (marker.text.length * 6) + 6, // Справа от метки
+            x: marker.x + (marker.text.length * 6) + 6,
             y: marker.y,
             gap: 6,
             font: 'Helvetica',
             size: 10
           }
         });
-        
         fieldCounters[marker.text] = counter + 1;
       }
     }

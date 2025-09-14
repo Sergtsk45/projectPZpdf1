@@ -1,0 +1,86 @@
+{
+  "templateId": "267aaf7980efa4b4f95c9e44d0cd4404fab8562e4b96ebb72d3014073fa78512",
+  "fileName": "pattern1.1.pdf",
+  "storageFileName": "template_267aaf7980efa4b4f95c9e44d0cd4404fab8562e4b96ebb72d3014073fa78512.pdf",
+  "pages": 1,
+  "fields": [
+    {
+      "name": "max_hourly",
+      "strategy": "text",
+      "marker": "mchr:",
+      "page": 0,
+      "markerBox": {
+        "x": 318.8135,
+        "y": 565.503,
+        "w": 30,
+        "h": 10
+      },
+      "draw": {
+        "x": 354.8135,
+        "y": 565.503,
+        "gap": 6,
+        "font": "Helvetica",
+        "size": 10
+      }
+    },
+    {
+      "name": "msr_daily",
+      "strategy": "text",
+      "marker": "msr:",
+      "page": 0,
+      "markerBox": {
+        "x": 330.39196,
+        "y": 549.3603,
+        "w": 24,
+        "h": 10
+      },
+      "draw": {
+        "x": 360.39196,
+        "y": 549.3603,
+        "gap": 6,
+        "font": "Helvetica",
+        "size": 10
+      }
+    },
+    {
+      "name": "pump_model",
+      "strategy": "text",
+      "marker": "n:",
+      "page": 0,
+      "markerBox": {
+        "x": 212.24208,
+        "y": 388.546,
+        "w": 12,
+        "h": 10
+      },
+      "draw": {
+        "x": 230.24208,
+        "y": 388.546,
+        "gap": 6,
+        "font": "Helvetica",
+        "size": 10
+      }
+    },
+    {
+      "name": "project_code",
+      "strategy": "text",
+      "marker": "sh:",
+      "page": 0,
+      "markerBox": {
+        "x": 251.781,
+        "y": 45.226,
+        "w": 18,
+        "h": 10
+      },
+      "draw": {
+        "x": 275.781,
+        "y": 45.226,
+        "gap": 6,
+        "font": "Helvetica",
+        "size": 10
+      }
+    }
+  ],
+  "createdAt": "2025-09-14T04:37:32.781Z",
+  "version": 1
+}
